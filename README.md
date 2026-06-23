@@ -38,7 +38,10 @@ monitoring → integration).
 
 ## Quick start
 
+**Requires Python 3.10+.**
+
 ```bash
+git clone https://github.com/aicoaching2025/data-quality-engine.git
 cd data-quality-engine
 pip install -r requirements.txt
 
@@ -136,3 +139,7 @@ This is App 1. It produces the clean, validated data that feeds:
 3. **Interactive Stakeholder Dashboard**
 4. **Production Monitoring & Observability**
 5. **End-to-end integration**
+
+## License
+
+MIT — see [LICENSE](LICENSE). Free to use, fork, and build on.
