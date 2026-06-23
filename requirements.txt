@@ -1,0 +1,23 @@
+# Core
+pandas>=2.0
+numpy>=1.24
+
+# Reporting
+jinja2>=3.1
+
+# Config
+pyyaml>=6.0
+
+# CLI experience
+rich>=13.0
+
+# Optional connector formats (CSV works without these; install as needed)
+openpyxl>=3.1     # Excel (.xlsx)
+pyarrow>=14.0     # Parquet
+
+# Optional extension points (lazy-imported only when used)
+# sqlalchemy>=2.0  # SQL connector
+# requests>=2.31   # API connector
+
+# Dev
+pytest>=7.4

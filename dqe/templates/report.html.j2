@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Data Quality Report — {{ report.dataset_name }}</title>
+<style>
+  :root {
+    --bg: #f5f6f8; --card: #ffffff; --ink: #1c2330; --muted: #6b7280;
+    --line: #e5e7eb; --accent: #2d5bff;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.5;
+  }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 32px 24px 64px; }
+  h1 { font-size: 22px; margin: 0; }
+  h2 { font-size: 15px; text-transform: uppercase; letter-spacing: .06em;
+       color: var(--muted); margin: 36px 0 14px; }
+  .sub { color: var(--muted); font-size: 13px; margin-top: 4px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; }
+  .hero { display: flex; gap: 28px; align-items: center; padding: 26px 28px; margin-top: 18px; }
+  .hero .meta { flex: 1; }
+  .verdict { display: inline-block; padding: 4px 12px; border-radius: 999px;
+             color: #fff; font-weight: 700; font-size: 12px; letter-spacing: .05em; }
+  .grade { font-size: 40px; font-weight: 800; line-height: 1; }
+  .donut-label { font-size: 26px; font-weight: 800; }
+  .donut-sub { font-size: 11px; fill: var(--muted); }
+
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; margin-top: 16px; }
+  .stat { padding: 16px 18px; }
+  .stat .v { font-size: 24px; font-weight: 700; }
+  .stat .k { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+  th { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  tr:last-child td { border-bottom: none; }
+
+  .badge { display: inline-block; min-width: 46px; text-align: center; padding: 2px 8px;
+           border-radius: 6px; font-size: 11px; font-weight: 700; color: #fff; letter-spacing: .03em; }
+
+  .bar { height: 8px; border-radius: 6px; background: var(--line); overflow: hidden; }
+  .bar > span { display: block; height: 100%; border-radius: 6px; }
+  .dim-row { display: grid; grid-template-columns: 130px 1fr 64px; gap: 14px; align-items: center;
+             padding: 11px 0; border-bottom: 1px solid var(--line); }
+  .dim-row:last-child { border-bottom: none; }
+  .dim-name { font-weight: 600; text-transform: capitalize; font-size: 14px; }
+  .dim-score { text-align: right; font-variant-numeric: tabular-nums; font-weight: 700; }
+
+  .finding { display: grid; grid-template-columns: 60px 1fr; gap: 12px; padding: 12px 0;
+             border-bottom: 1px solid var(--line); }
+  .finding:last-child { border-bottom: none; }
+  .finding .msg { font-size: 14px; }
+  .finding .where { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .empty { color: var(--muted); font-style: italic; padding: 6px 0; }
+  footer { margin-top: 40px; color: var(--muted); font-size: 12px; text-align: center; }
+  code { background: #eef0f3; padding: 1px 6px; border-radius: 5px; font-size: 12px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>Data Quality Report</h1>
+    <div class="sub">
+      <strong>{{ report.dataset_name }}</strong> ·
+      <code>{{ report.source }}</code> ·
+      generated {{ report.generated_at }}
+    </div>
+  </header>
+
+  <!-- Hero: overall readiness -->
+  <div class="card hero">
+    <svg width="{{ score_donut.size }}" height="{{ score_donut.size }}" viewBox="0 0 {{ score_donut.size }} {{ score_donut.size }}">
+      <circle cx="{{ score_donut.center }}" cy="{{ score_donut.center }}" r="{{ score_donut.radius }}"
+              fill="none" stroke="#e9ecf1" stroke-width="{{ score_donut.stroke }}"/>
+      <circle cx="{{ score_donut.center }}" cy="{{ score_donut.center }}" r="{{ score_donut.radius }}"
+              fill="none" stroke="{{ score_donut.color }}" stroke-width="{{ score_donut.stroke }}"
+              stroke-linecap="round" stroke-dasharray="{{ score_donut.dash }}"
+              transform="rotate(-90 {{ score_donut.center }} {{ score_donut.center }})"/>
+      <text x="50%" y="49%" text-anchor="middle" class="donut-label" fill="{{ score_color }}">
+        {{ "%.0f"|format(scorecard.overall_score) }}
+      </text>
+      <text x="50%" y="63%" text-anchor="middle" class="donut-sub">/ 100</text>
+    </svg>
+    <div class="meta">
+      <span class="verdict" style="background: {{ verdict_color }}">{{ scorecard.verdict }}</span>
+      <div style="display:flex; align-items:baseline; gap:14px; margin-top:10px;">
+        <span class="grade" style="color: {{ score_color }}">{{ scorecard.grade }}</span>
+        <span class="sub">Data Readiness Grade</span>
+      </div>
+      <div class="sub" style="margin-top:8px;">
+        {{ scorecard.n_pass }} passed ·
+        {{ scorecard.n_warn }} warnings ·
+        {{ scorecard.n_fail }} failed
+        across {{ results|length }} checks
+      </div>
+    </div>
+  </div>
+
+  <!-- Summary stats -->
+  <div class="cards">
+    <div class="card stat"><div class="v">{{ profile.n_rows|commafy }}</div><div class="k">Rows</div></div>
+    <div class="card stat"><div class="v">{{ profile.n_columns|commafy }}</div><div class="k">Columns</div></div>
+    <div class="card stat"><div class="v">{{ profile.total_cells|commafy }}</div><div class="k">Cells</div></div>
+    {% set missing = results | selectattr("check","equalto","completeness") | sum(attribute="metric") %}
+    <div class="card stat">
+      <div class="v">{{ "%.1f"|format(100 - (missing /(profile.n_columns or 1) * 100)) }}%</div>
+      <div class="k">Avg Complete</div>
+    </div>
+    <div class="card stat"><div class="v">{{ "%.1f"|format((profile.memory_bytes/1048576)) }} MB</div><div class="k">In Memory</div></div>
+  </div>
+
+  <!-- Dimension breakdown -->
+  <h2>Quality dimensions</h2>
+  <div class="card" style="padding: 14px 20px;">
+    {% for d in scorecard.dimensions %}
+    {% set c = score_color if d.score >= 90 else (status_colors.warn if d.score >= 75 else status_colors.fail) %}
+    <div class="dim-row">
+      <div class="dim-name">{{ d.dimension.value }}</div>
+      <div>
+        <div class="bar"><span style="width: {{ "%.0f"|format(d.score) }}%; background: {{ c }};"></span></div>
+        <div class="sub" style="margin-top:4px;">
+          {{ d.n_pass }} pass · {{ d.n_warn }} warn · {{ d.n_fail }} fail
+        </div>
+      </div>
+      <div class="dim-score" style="color: {{ c }}">{{ "%.0f"|format(d.score) }}</div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Findings -->
+  <h2>Findings &amp; recommendations</h2>
+  <div class="card" style="padding: 8px 20px;">
+    {% if findings %}
+      {% for f in findings %}
+      <div class="finding">
+        <div><span class="badge" style="background: {{ status_colors[f.status.value] }}">{{ f.status.value|upper }}</span></div>
+        <div>
+          <div class="msg">{{ f.message }}</div>
+          <div class="where">
+            {{ f.check }} · {{ f.dimension.value }}{% if f.column %} · column <code>{{ f.column }}</code>{% endif %}
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="empty">No issues found — every check passed. ✓</div>
+    {% endif %}
+  </div>
+
+  <!-- Column profile -->
+  <h2>Column profile</h2>
+  <div class="card" style="overflow:hidden;">
+    <table>
+      <thead>
+        <tr>
+          <th>Column</th><th>Type</th><th class="num">Nulls</th>
+          <th class="num">Unique</th><th class="num">Min</th><th class="num">Max</th><th class="num">Mean</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in profile.columns %}
+        <tr>
+          <td><strong>{{ c.name }}</strong></td>
+          <td><code>{{ c.dtype }}</code></td>
+          <td class="num">{{ c.null_fraction|pct }}</td>
+          <td class="num">{{ c.unique_count|commafy }}</td>
+          <td class="num">{{ "%.3g"|format(c.min) if c.min is not none else "—" }}</td>
+          <td class="num">{{ "%.3g"|format(c.max) if c.max is not none else "—" }}</td>
+          <td class="num">{{ "%.3g"|format(c.mean) if c.mean is not none else "—" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Full check log -->
+  <h2>All checks ({{ results|length }})</h2>
+  <div class="card" style="overflow:hidden;">
+    <table>
+      <thead><tr><th>Status</th><th>Check</th><th>Dimension</th><th>Column</th><th class="num">Score</th><th>Detail</th></tr></thead>
+      <tbody>
+        {% for r in results %}
+        <tr>
+          <td><span class="badge" style="background: {{ status_colors[r.status.value] }}">{{ r.status.value|upper }}</span></td>
+          <td>{{ r.check }}</td>
+          <td>{{ r.dimension.value }}</td>
+          <td>{% if r.column %}<code>{{ r.column }}</code>{% else %}<span class="sub">table</span>{% endif %}</td>
+          <td class="num">{{ "%.0f"|format(r.score) }}</td>
+          <td class="sub">{{ r.message }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <footer>
+    Generated by <strong>Data Quality Engine</strong> v{{ report.config.get("_version", "0.1.0") }} ·
+    {{ report.generated_at }}
+  </footer>
+
+</div>
+</body>
+</html>

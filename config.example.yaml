@@ -1,0 +1,49 @@
+# Example configuration for the Data Quality Engine.
+# Pass with:  dqe assess <data> --config config.example.yaml
+#
+# Everything here is optional. With no config, all checks run with sane
+# defaults; the schema/range/allowed-values/freshness/primary-key checks simply
+# stay dormant until you give them rules to enforce.
+
+checks:
+  completeness:
+    enabled: true
+    warn_below: 99     # score (% present) below this -> WARN
+    fail_below: 90     # ...below this -> FAIL
+
+  duplicate_rows:
+    enabled: true
+
+  primary_key:
+    key: [customer_id]   # assert this is unique across rows
+
+  schema:
+    expected:            # required columns and their expected types
+      customer_id: int   # the sample data stores this as float -> will FAIL
+      signup_date: datetime
+      age: int
+      country: str
+      monthly_revenue: float
+    allow_extra_columns: true
+
+  outliers:
+    enabled: true
+    method: iqr          # "iqr" (robust, default) or "zscore"
+    iqr_k: 1.5
+
+  range:
+    rules:
+      age: {min: 0, max: 120}
+      monthly_revenue: {min: 0}
+
+  allowed_values:
+    rules:
+      status: ["active", "churned", "trial"]
+      country:
+        values: ["US", "CA", "GB", "DE", "FR"]
+        case_insensitive: true
+
+  freshness:
+    column: signup_date
+    max_age_days: 365
+    warn_age_days: 180

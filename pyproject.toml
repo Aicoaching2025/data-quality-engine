@@ -1,0 +1,34 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "data-quality-engine"
+version = "0.1.0"
+description = "Automated data quality assessment engine: ingest, validate, and score datasets for ML/analytics readiness."
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [{ name = "Data Science Portfolio" }]
+dependencies = [
+    "pandas>=2.0",
+    "numpy>=1.24",
+    "jinja2>=3.1",
+    "pyyaml>=6.0",
+    "rich>=13.0",
+]
+
+[project.optional-dependencies]
+excel = ["openpyxl>=3.1"]
+parquet = ["pyarrow>=14.0"]
+sql = ["sqlalchemy>=2.0"]
+api = ["requests>=2.31"]
+dev = ["pytest>=7.4"]
+
+[project.scripts]
+dqe = "dqe.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["dqe*"]
+
+[tool.setuptools.package-data]
+dqe = ["templates/*.j2"]
