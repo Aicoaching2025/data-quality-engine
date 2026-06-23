@@ -41,7 +41,7 @@ monitoring → integration).
 **Requires Python 3.10+.**
 
 ```bash
-git clone https://github.com/aicoaching2025/data-quality-engine.git
+git clone https://github.com/Aicoaching2025/data-quality-engine.git
 cd data-quality-engine
 pip install -r requirements.txt
 
