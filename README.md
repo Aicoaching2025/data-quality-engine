@@ -1,5 +1,9 @@
 # Data Quality Engine
 
+**🧭 Data Science Portfolio — App 1 of 4.** From raw data to a monitored production model, in four projects:
+
+**1 · Data Quality Engine** · [2 · Model Comparison](https://github.com/Aicoaching2025/model-comparison-framework) · [3 · Stakeholder Dashboard](https://github.com/Aicoaching2025/stakeholder-dashboard) ([live ↗](https://stakeholder-dashboard-nine.vercel.app/)) · [4 · Monitoring Service](https://github.com/Aicoaching2025/model-monitoring-service) ([live ↗](https://churn-model-monitoring.onrender.com/))
+
 > Automated data quality assessment: ingest a dataset, run a battery of quality
 > checks, and get back a **data-readiness score** plus a shareable report — so
 > you catch bad data *before* it reaches a model.
